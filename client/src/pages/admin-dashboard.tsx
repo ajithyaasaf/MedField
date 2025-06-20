@@ -26,12 +26,23 @@ import MapComponent from "@/components/ui/map";
 import GeoFenceManager from "@/components/geo-fence-manager";
 import UserManagement from "@/components/user-management";
 import ManualAttendanceApproval from "@/components/manual-attendance-approval";
+import AnalyticsDashboard from "@/components/analytics-dashboard";
+import ReportsGenerator from "@/components/reports-generator";
+import SystemSettings from "@/components/system-settings";
+import ActivityFeed from "@/components/activity-feed";
+import DocumentManager from "@/components/document-manager";
+import OfflineManager from "@/components/offline-manager";
+import AuditCompliance from "@/components/audit-compliance";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showGeoFenceManager, setShowGeoFenceManager] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [showAttendanceApproval, setShowAttendanceApproval] = useState(false);
+  const [showReportsGenerator, setShowReportsGenerator] = useState(false);
+  const [showSystemSettings, setShowSystemSettings] = useState(false);
+  const [showDocumentManager, setShowDocumentManager] = useState(false);
+  const [showOfflineManager, setShowOfflineManager] = useState(false);
   const { toast } = useToast();
 
   const { data: user } = useQuery({
@@ -253,10 +264,113 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Main Content */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Live Map & Activity */}
-          <div className="lg:col-span-2 space-y-8">
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="flex space-x-4 border-b">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`pb-2 px-1 border-b-2 transition-colors ${
+                activeTab === 'overview' 
+                  ? 'border-medical-blue text-medical-blue' 
+                  : 'border-transparent text-gray-500'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`pb-2 px-1 border-b-2 transition-colors ${
+                activeTab === 'analytics' 
+                  ? 'border-medical-blue text-medical-blue' 
+                  : 'border-transparent text-gray-500'
+              }`}
+            >
+              Analytics
+            </button>
+            <button
+              onClick={() => setActiveTab('documents')}
+              className={`pb-2 px-1 border-b-2 transition-colors ${
+                activeTab === 'documents' 
+                  ? 'border-medical-blue text-medical-blue' 
+                  : 'border-transparent text-gray-500'
+              }`}
+            >
+              Documents
+            </button>
+            <button
+              onClick={() => setActiveTab('offline')}
+              className={`pb-2 px-1 border-b-2 transition-colors ${
+                activeTab === 'offline' 
+                  ? 'border-medical-blue text-medical-blue' 
+                  : 'border-transparent text-gray-500'
+              }`}
+            >
+              Offline
+            </button>
+            <button
+              onClick={() => setActiveTab('audit')}
+              className={`pb-2 px-1 border-b-2 transition-colors ${
+                activeTab === 'audit' 
+                  ? 'border-medical-blue text-medical-blue' 
+                  : 'border-transparent text-gray-500'
+              }`}
+            >
+              Audit & Compliance
+            </button>
+          </div>
+        </div>
+
+        {/* Analytics Dashboard */}
+        {activeTab === "analytics" && (
+          <AnalyticsDashboard />
+        )}
+
+        {/* Document Management */}
+        {activeTab === "documents" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-medical-gray-dark">Document Management</h2>
+                <p className="text-medical-gray">Manage contracts, approvals, certificates, and other documents</p>
+              </div>
+            </div>
+            <DocumentManager onClose={() => setActiveTab('overview')} />
+          </div>
+        )}
+
+        {/* Offline Management */}
+        {activeTab === "offline" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-medical-gray-dark">Offline Management</h2>
+                <p className="text-medical-gray">Monitor offline data sync and cached information</p>
+              </div>
+            </div>
+            <OfflineManager />
+          </div>
+        )}
+
+        {/* Audit & Compliance */}
+        {activeTab === "audit" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-medical-gray-dark">Audit & Compliance</h2>
+                <p className="text-medical-gray">Monitor system security, user actions, and compliance violations</p>
+              </div>
+            </div>
+            <AuditCompliance />
+          </div>
+        )}
+
+        {/* Overview Tab Content */}
+        {activeTab === "overview" && (
+          <>
+            {/* Main Content */}
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Live Map & Activity */}
+              <div className="lg:col-span-2 space-y-8">
             {/* Live Field Rep Map */}
             <Card>
               <CardHeader>
@@ -399,7 +513,14 @@ export default function AdminDashboard() {
                   </Button>
                   <Button
                     className="w-full bg-medical-amber hover:bg-yellow-600 justify-start"
-                    onClick={() => {}}
+                    onClick={() => setShowAttendanceApproval(true)}
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-3" />
+                    Attendance Approvals
+                  </Button>
+                  <Button
+                    className="w-full bg-medical-red hover:bg-red-600 justify-start"
+                    onClick={() => setShowReportsGenerator(true)}
                   >
                     <FileText className="w-4 h-4 mr-3" />
                     Generate Reports
@@ -408,7 +529,14 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Admin Controls Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            <ActivityFeed />
+          </div>
         </div>
+        </>
+        )}
       </div>
 
       {/* Geo-Fence Manager Modal */}
@@ -430,6 +558,18 @@ export default function AdminDashboard() {
       {showAttendanceApproval && (
         <ManualAttendanceApproval
           onClose={() => setShowAttendanceApproval(false)}
+        />
+      )}
+
+      {showReportsGenerator && (
+        <ReportsGenerator
+          onClose={() => setShowReportsGenerator(false)}
+        />
+      )}
+
+      {showSystemSettings && (
+        <SystemSettings
+          onClose={() => setShowSystemSettings(false)}
         />
       )}
     </div>

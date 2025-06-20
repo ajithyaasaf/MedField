@@ -29,7 +29,11 @@ import ScheduleManager from "@/components/schedule-manager";
 import NotificationPanel from "@/components/notification-panel";
 import NotificationSettings from "@/components/notification-settings";
 import QuotationList from "@/components/quotation-list";
+import DocumentManager from "@/components/document-manager";
+import OfflineManager from "@/components/offline-manager";
 import { LanguageSelector } from "@/components/internationalization";
+import { useOfflineManager } from "@/components/offline-manager";
+import { NotificationPermissionManager, useGeoFenceNotifications, useAttendanceNotifications } from "@/components/push-notifications";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { useToast } from "@/hooks/use-toast";
@@ -41,7 +45,12 @@ export default function FieldRepDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [showQuotationList, setShowQuotationList] = useState(false);
+  const [showDocumentManager, setShowDocumentManager] = useState(false);
+  const [showOfflineManager, setShowOfflineManager] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const { isOnline, saveForOfflineSync } = useOfflineManager();
+  const { notifyEnterZone, notifyExitZone } = useGeoFenceNotifications();
+  const { notifyClockOutReminder } = useAttendanceNotifications();
   const { toast } = useToast();
   const { location, error: locationError } = useGeolocation();
 
@@ -256,6 +265,26 @@ export default function FieldRepDashboard() {
             <div className="flex items-center space-x-4">
               <LanguageSelector />
               
+              {/* Connection Status */}
+              <div className="flex items-center">
+                {isOnline ? (
+                  <div className="flex items-center text-green-600">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span className="text-xs">Online</span>
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowOfflineManager(true)}
+                    className="text-orange-600"
+                  >
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                    <span className="text-xs">Offline</span>
+                  </Button>
+                )}
+              </div>
+              
               <div className="relative">
                 <Button 
                   variant="ghost" 
@@ -270,6 +299,14 @@ export default function FieldRepDashboard() {
                   )}
                 </Button>
               </div>
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowDocumentManager(true)}
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
               
               <Button 
                 variant="ghost" 
@@ -606,6 +643,26 @@ export default function FieldRepDashboard() {
             setShowQuotationBuilder(true);
           }}
         />
+      )}
+
+      {showDocumentManager && (
+        <DocumentManager
+          onClose={() => setShowDocumentManager(false)}
+        />
+      )}
+
+      {showOfflineManager && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-medical-gray-dark">Offline Management</h2>
+              <Button variant="ghost" onClick={() => setShowOfflineManager(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <OfflineManager />
+          </div>
+        </div>
       )}
     </div>
   );

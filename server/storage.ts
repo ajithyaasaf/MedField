@@ -32,6 +32,7 @@ export interface IStorage {
   getAttendanceRecord(id: number): Promise<AttendanceRecord | undefined>;
   getAttendanceByUser(userId: number, date?: string): Promise<AttendanceRecord[]>;
   getAttendanceByDate(date: string): Promise<AttendanceRecord[]>;
+  getAllAttendance(): Promise<AttendanceRecord[]>;
   createAttendance(attendance: InsertAttendance): Promise<AttendanceRecord>;
   updateAttendance(id: number, updates: Partial<InsertAttendance>): Promise<AttendanceRecord | undefined>;
 

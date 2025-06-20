@@ -21,7 +21,7 @@ export class EmailSMSService {
 
   constructor() {
     // Create a test transporter using Ethereal Email (for development)
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
       secure: false, // true for 465, false for other ports
