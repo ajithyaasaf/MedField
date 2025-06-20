@@ -1,0 +1,131 @@
+1. Personas & High‑Level Journeys
+Persona	Goal
+Field Rep	• Clock in/out via geo‑fence
+• Visit hospital, create & send quotation PDF
+Admin	• Configure geo‑zones & attendance rules
+• Approve/manage quotations
+• View reports & dashboards
+
+2. Field Rep Flow
+Onboarding / First‑Time Setup
+
+Accept Terms & Conditions (geo‑location permission)
+
+Complete profile: name, employee ID, assigned territory/hospitals
+
+Home / Dashboard
+
+Today’s schedule (hospitals to visit)
+
+Attendance status (clocked in / out)
+
+Quick‑action buttons:
+
+“Clock In” / “Clock Out”
+
+“New Quotation”
+
+Clock In / Clock Out
+
+Auto‑detect via GPS within predefined geo‑fence
+
+If outside geo‑fence: show warning & request manual approval
+
+Hospital Visit → Quotation
+
+Select hospital (from calendar or lookup)
+
+“New Quotation” screen:
+
+Choose offered products/services
+
+Auto‑fill customer/hospital info
+
+Pricing table & discount rules
+
+Notes & next‑steps
+
+Preview & “Generate PDF”
+
+“Send” via email/SMS link
+
+Status updates: Draft → Sent → Accepted/Rejected
+
+My Quotations
+
+List all quotes (by status)
+
+Tap to view details, re‑send, or clone
+
+Notifications & Alerts
+
+Reminders to clock out if end of day
+
+Alerts for expiring quotations
+
+Settings
+
+Update profile, change password
+
+Notification preferences
+
+3. Admin Flow
+Login & 2FA
+
+Admin Dashboard (Landing)
+
+Attendance Overview
+
+Live map of Field Reps within geo‑zones
+
+Summary: Today’s check‑ins, missed check‑ins, late entries
+
+Quotation Overview
+
+Total sent/approved/rejected this period
+
+Top hospitals by revenue
+
+Key KPI cards & trend charts
+
+Geo‑Fence Management
+
+Define geo‑zones (draw on map or upload coordinates)
+
+Assign zones to teams or regions
+
+Set attendance rules (e.g. grace period, checkpoints)
+
+User & Role Management
+
+Invite new Field Reps & assign territories
+
+Define roles & permissions (e.g. Sales Lead, Manager)
+
+Quotation Management
+
+Review pending quotations: Approve, request changes
+
+Bulk‑export PDFs or send reminders
+
+Template library: manage product/service catalog & pricing rules
+
+Reports & Analytics
+
+Attendance reports (daily/weekly/monthly)
+
+Quotation funnel analysis (draft → won/lost)
+
+Revenue forecasts per region or rep
+
+Notifications & Alerts Settings
+
+Configure thresholds (e.g. if a quote is pending > 7 days)
+
+Define email/SMS templates
+
+System Settings
+
+Company info, branding (for PDFs & emails)
+
+Audit logs & security controls
