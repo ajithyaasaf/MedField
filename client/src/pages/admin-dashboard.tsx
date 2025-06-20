@@ -27,12 +27,15 @@ import GeoFenceManager from "@/components/geo-fence-manager";
 import UserManagement from "@/components/user-management";
 import ManualAttendanceApproval from "@/components/manual-attendance-approval";
 import AnalyticsDashboard from "@/components/analytics-dashboard";
+import AdvancedAnalytics from "@/components/advanced-analytics";
 import ReportsGenerator from "@/components/reports-generator";
 import SystemSettings from "@/components/system-settings";
 import ActivityFeed from "@/components/activity-feed";
 import DocumentManager from "@/components/document-manager";
 import OfflineManager from "@/components/offline-manager";
 import AuditCompliance from "@/components/audit-compliance";
+import QuotationManagement from "@/components/quotation-management";
+import SmartNotifications from "@/components/smart-notifications";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -43,6 +46,9 @@ export default function AdminDashboard() {
   const [showSystemSettings, setShowSystemSettings] = useState(false);
   const [showDocumentManager, setShowDocumentManager] = useState(false);
   const [showOfflineManager, setShowOfflineManager] = useState(false);
+  const [showQuotationManagement, setShowQuotationManagement] = useState(false);
+  const [showAdvancedAnalytics, setShowAdvancedAnalytics] = useState(false);
+  const [showSmartNotifications, setShowSmartNotifications] = useState(false);
   const { toast } = useToast();
 
   const { data: user } = useQuery({
@@ -525,6 +531,27 @@ export default function AdminDashboard() {
                     <FileText className="w-4 h-4 mr-3" />
                     Generate Reports
                   </Button>
+                  <Button
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white justify-start"
+                    onClick={() => setShowAdvancedAnalytics(true)}
+                  >
+                    <TrendingUp className="w-4 h-4 mr-3" />
+                    Advanced Analytics
+                  </Button>
+                  <Button
+                    className="w-full bg-green-600 hover:bg-green-700 text-white justify-start"
+                    onClick={() => setShowQuotationManagement(true)}
+                  >
+                    <FileText className="w-4 h-4 mr-3" />
+                    Quotation Management
+                  </Button>
+                  <Button
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white justify-start"
+                    onClick={() => setShowSmartNotifications(true)}
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-3" />
+                    Smart Notifications
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -571,6 +598,50 @@ export default function AdminDashboard() {
         <SystemSettings
           onClose={() => setShowSystemSettings(false)}
         />
+      )}
+
+      {showAdvancedAnalytics && (
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">Advanced Analytics Dashboard</h1>
+              <Button
+                variant="outline"
+                onClick={() => setShowAdvancedAnalytics(false)}
+                className="ml-4"
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Close
+              </Button>
+            </div>
+            <AdvancedAnalytics />
+          </div>
+        </div>
+      )}
+
+      {showQuotationManagement && (
+        <QuotationManagement
+          onClose={() => setShowQuotationManagement(false)}
+        />
+      )}
+
+      {showSmartNotifications && (
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">Smart Notifications Dashboard</h1>
+              <Button
+                variant="outline"
+                onClick={() => setShowSmartNotifications(false)}
+                className="ml-4"
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Close
+              </Button>
+            </div>
+            <SmartNotifications />
+          </div>
+        </div>
       )}
     </div>
   );

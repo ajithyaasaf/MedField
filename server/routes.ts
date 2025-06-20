@@ -556,6 +556,360 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced quotation management routes
+  app.post("/api/quotations/bulk-export", requireAuth, async (req, res) => {
+    try {
+      const { quotationIds } = req.body;
+      
+      // Mock bulk PDF export
+      const zipBuffer = Buffer.from(`Mock ZIP file containing ${quotationIds.length} quotation PDFs`);
+      
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="quotations-export.zip"');
+      res.send(zipBuffer);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to export quotations" });
+    }
+  });
+
+  app.post("/api/quotations/:id/approval", requireAuth, async (req, res) => {
+    try {
+      const quotationId = parseInt(req.params.id);
+      const { action, comments } = req.body;
+      
+      // Mock approval workflow
+      const approvalData = {
+        action,
+        comments,
+        approvedBy: req.session.userId,
+        approvedAt: new Date(),
+        status: action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'pending_changes'
+      };
+      
+      res.json({ message: "Approval status updated", data: approvalData });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update approval status" });
+    }
+  });
+
+  app.post("/api/quotations/send-reminders", requireAuth, async (req, res) => {
+    try {
+      const { quotationIds } = req.body;
+      
+      // Mock reminder sending
+      const results = quotationIds.map((id: number) => ({
+        quotationId: id,
+        status: 'sent',
+        sentAt: new Date()
+      }));
+      
+      res.json({ message: "Reminders sent successfully", results });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send reminders" });
+    }
+  });
+
+  // Quotation templates
+  app.get("/api/quotation-templates", requireAuth, async (req, res) => {
+    try {
+      const mockTemplates = [
+        {
+          id: 1,
+          name: "Standard Medical Equipment Package",
+          category: "Equipment",
+          products: [
+            { id: 1, quantity: 2, unitPrice: "5000", discount: 10 },
+            { id: 2, quantity: 1, unitPrice: "3000", discount: 5 }
+          ],
+          standardDiscount: 10,
+          validityDays: 30,
+          terms: "Standard terms and conditions apply"
+        },
+        {
+          id: 2,
+          name: "Surgical Supplies Bundle",
+          category: "Supplies",
+          products: [
+            { id: 3, quantity: 10, unitPrice: "200", discount: 15 },
+            { id: 4, quantity: 5, unitPrice: "150", discount: 10 }
+          ],
+          standardDiscount: 15,
+          validityDays: 21,
+          terms: "Bulk order terms apply"
+        }
+      ];
+      
+      res.json(mockTemplates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+
+  app.post("/api/quotation-templates", requireAuth, async (req, res) => {
+    try {
+      const templateData = req.body;
+      const newTemplate = {
+        id: Date.now(),
+        ...templateData,
+        createdAt: new Date(),
+        createdBy: req.session.userId
+      };
+      
+      res.json({ message: "Template created successfully", template: newTemplate });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+
+  // Advanced analytics routes
+  app.get("/api/analytics/attendance", requireAuth, async (req, res) => {
+    try {
+      const { timeRange, region, rep } = req.query;
+      
+      const mockAttendanceMetrics = {
+        totalCheckIns: 145,
+        onTimeCheckIns: 128,
+        lateCheckIns: 17,
+        missedCheckIns: 8,
+        averageHoursWorked: 7.4,
+        attendanceRate: 94.5,
+        byDate: Array.from({ length: 30 }, (_, i) => ({
+          date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          checkIns: Math.floor(Math.random() * 8) + 2,
+          onTime: Math.floor(Math.random() * 6) + 2,
+          late: Math.floor(Math.random() * 2),
+          missed: Math.floor(Math.random() * 1)
+        })),
+        byUser: [
+          { userId: 1, userName: "Admin User", checkIns: 25, attendanceRate: 95, avgHours: 7.8 },
+          { userId: 3, userName: "Sarah Johnson", checkIns: 23, attendanceRate: 92, avgHours: 7.2 },
+          { userId: 4, userName: "Mike Chen", checkIns: 22, attendanceRate: 88, avgHours: 7.5 }
+        ],
+        byRegion: [
+          { region: "Downtown", totalReps: 8, activeReps: 7, attendanceRate: 87.5 },
+          { region: "North District", totalReps: 6, activeReps: 6, attendanceRate: 100 },
+          { region: "South Zone", totalReps: 5, activeReps: 4, attendanceRate: 80 }
+        ]
+      };
+      
+      res.json(mockAttendanceMetrics);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch attendance analytics" });
+    }
+  });
+
+  app.get("/api/analytics/revenue", requireAuth, async (req, res) => {
+    try {
+      const { timeRange, region, rep } = req.query;
+      
+      const mockRevenueMetrics = {
+        totalRevenue: 145000,
+        forecastedRevenue: 180000,
+        growthRate: 24.1,
+        avgDealSize: 15800,
+        byRegion: [
+          { region: "Downtown", revenue: 65000, growth: 18.5, dealCount: 12 },
+          { region: "North District", revenue: 48000, growth: 31.2, dealCount: 8 },
+          { region: "South Zone", revenue: 32000, growth: 15.8, dealCount: 6 }
+        ],
+        byRep: [
+          { userId: 3, userName: "Sarah Johnson", revenue: 45000, dealCount: 8, conversionRate: 75 },
+          { userId: 4, userName: "Mike Chen", revenue: 38000, dealCount: 6, conversionRate: 67 },
+          { userId: 5, userName: "Anna Martinez", revenue: 32000, dealCount: 5, conversionRate: 62 }
+        ],
+        forecast: [
+          { month: "Jan", projected: 45000, conservative: 38000, optimistic: 52000 },
+          { month: "Feb", projected: 48000, conservative: 42000, optimistic: 55000 },
+          { month: "Mar", projected: 52000, conservative: 45000, optimistic: 60000 },
+          { month: "Apr", projected: 55000, conservative: 48000, optimistic: 63000 },
+          { month: "May", projected: 58000, conservative: 51000, optimistic: 67000 },
+          { month: "Jun", projected: 62000, conservative: 54000, optimistic: 71000 }
+        ]
+      };
+      
+      res.json(mockRevenueMetrics);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch revenue analytics" });
+    }
+  });
+
+  app.get("/api/analytics/quotation-funnel", requireAuth, async (req, res) => {
+    try {
+      const { timeRange, region, rep } = req.query;
+      
+      const mockQuotationFunnel = {
+        totalQuotations: 89,
+        draftCount: 23,
+        sentCount: 34,
+        approvedCount: 21,
+        rejectedCount: 11,
+        conversionRate: 61.8,
+        avgTimeToApproval: 8.5,
+        byStage: [
+          { stage: "Draft", count: 23, percentage: 25.8, avgDaysInStage: 2.3 },
+          { stage: "Sent", count: 34, percentage: 38.2, avgDaysInStage: 5.7 },
+          { stage: "Under Review", count: 11, percentage: 12.4, avgDaysInStage: 3.2 },
+          { stage: "Approved", count: 21, percentage: 23.6, avgDaysInStage: 8.5 }
+        ],
+        topHospitals: [
+          { hospitalId: 1, hospitalName: "St. Mary's Hospital", quotationCount: 15, totalValue: 95000, conversionRate: 73.3 },
+          { hospitalId: 2, hospitalName: "General Medical Center", quotationCount: 12, totalValue: 78000, conversionRate: 66.7 },
+          { hospitalId: 3, hospitalName: "City Health Complex", quotationCount: 9, totalValue: 52000, conversionRate: 55.6 }
+        ]
+      };
+      
+      res.json(mockQuotationFunnel);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch quotation funnel analytics" });
+    }
+  });
+
+  // Smart notifications routes
+  app.get("/api/notifications/geo-fence-alerts", requireAuth, async (req, res) => {
+    try {
+      const mockGeoFenceAlerts = [
+        {
+          id: "gf1",
+          userId: 3,
+          userName: "Sarah Johnson",
+          geoFenceId: 1,
+          geoFenceName: "St. Mary's Hospital Zone",
+          hospitalName: "St. Mary's Hospital",
+          alertType: "approaching",
+          distance: 150,
+          timestamp: new Date(Date.now() - 5 * 60 * 1000),
+          location: { lat: 40.7128, lng: -74.0060 },
+          acknowledged: false
+        },
+        {
+          id: "gf2",
+          userId: 4,
+          userName: "Mike Chen",
+          geoFenceId: 2,
+          geoFenceName: "General Medical Center Zone",
+          hospitalName: "General Medical Center",
+          alertType: "entered",
+          distance: 0,
+          timestamp: new Date(Date.now() - 10 * 60 * 1000),
+          location: { lat: 40.7589, lng: -73.9851 },
+          acknowledged: true
+        }
+      ];
+      
+      res.json(mockGeoFenceAlerts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch geo-fence alerts" });
+    }
+  });
+
+  app.get("/api/notifications/no-show-alerts", requireAuth, async (req, res) => {
+    try {
+      const mockNoShowAlerts = [
+        {
+          id: "ns1",
+          userId: 3,
+          userName: "Sarah Johnson",
+          hospitalId: 1,
+          hospitalName: "St. Mary's Hospital",
+          scheduledTime: new Date(Date.now() - 45 * 60 * 1000),
+          missedDuration: 45,
+          lastKnownLocation: {
+            lat: 40.7128,
+            lng: -74.0060,
+            timestamp: new Date(Date.now() - 50 * 60 * 1000)
+          },
+          severity: "medium",
+          acknowledged: false
+        },
+        {
+          id: "ns2",
+          userId: 5,
+          userName: "Anna Martinez",
+          hospitalId: 3,
+          hospitalName: "City Health Complex",
+          scheduledTime: new Date(Date.now() - 120 * 60 * 1000),
+          missedDuration: 120,
+          severity: "high",
+          acknowledged: false
+        }
+      ];
+      
+      res.json(mockNoShowAlerts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch no-show alerts" });
+    }
+  });
+
+  app.post("/api/notifications/acknowledge", requireAuth, async (req, res) => {
+    try {
+      const { alertId, type } = req.body;
+      
+      // Mock acknowledgment
+      const acknowledgment = {
+        alertId,
+        type,
+        acknowledgedBy: req.session.userId,
+        acknowledgedAt: new Date()
+      };
+      
+      res.json({ message: "Alert acknowledged successfully", data: acknowledgment });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to acknowledge alert" });
+    }
+  });
+
+  app.get("/api/notifications/settings", requireAuth, async (req, res) => {
+    try {
+      const mockSettings = {
+        geoFenceAlerts: {
+          enabled: true,
+          approachingRadius: 200,
+          soundEnabled: true,
+          emailEnabled: true,
+          smsEnabled: false
+        },
+        noShowAlerts: {
+          enabled: true,
+          gracePeriod: 15,
+          escalationTime: 30,
+          soundEnabled: true,
+          emailEnabled: true,
+          smsEnabled: true
+        },
+        generalSettings: {
+          quietHours: {
+            enabled: false,
+            startTime: "22:00",
+            endTime: "08:00"
+          },
+          priority: "all",
+          batchNotifications: false
+        }
+      };
+      
+      res.json(mockSettings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notification settings" });
+    }
+  });
+
+  app.put("/api/notifications/settings", requireAuth, async (req, res) => {
+    try {
+      const settings = req.body;
+      
+      // Mock settings update
+      const updatedSettings = {
+        ...settings,
+        updatedBy: req.session.userId,
+        updatedAt: new Date()
+      };
+      
+      res.json({ message: "Settings updated successfully", settings: updatedSettings });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update notification settings" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
