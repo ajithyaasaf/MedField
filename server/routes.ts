@@ -102,7 +102,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username, 
           role: user.role, 
           name: user.name,
-          email: user.email,
           territory: user.territory
         } 
       });
@@ -192,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...insertAttendanceSchema.parse(req.body),
         userId: req.session.userId,
         date: new Date().toISOString().split('T')[0],
-        clockInTime: new Date().toISOString(),
+        clockInTime: new Date(),
       };
 
       const attendance = await storage.createAttendance(attendanceData);
@@ -204,9 +203,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/attendance/:id/clock-out", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const attendance = await storage.updateAttendance(id, {
-        clockOutTime: new Date().toISOString(),
+        clockOutTime: new Date(),
         ...req.body
       });
       res.json(attendance);
@@ -227,14 +226,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/attendance/:id/approve", requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const { approved, approvalNotes } = req.body;
       
       const attendance = await storage.updateAttendance(id, {
         approved,
         approvalNotes,
         approvedBy: req.session.userId,
-        approvedAt: new Date().toISOString()
+        approvedAt: new Date()
       });
       
       res.json(attendance);
@@ -293,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/quotations/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const updates = req.body;
       const quotation = await storage.updateQuotation(id, updates);
       if (!quotation) {
@@ -308,7 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Quotation email/SMS routes
   app.post("/api/quotations/:id/send", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const { method = 'email' } = req.body;
       
       const quotation = await storage.getQuotation(id);

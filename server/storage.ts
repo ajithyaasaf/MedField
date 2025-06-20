@@ -1,61 +1,61 @@
 import {
-  users, hospitals, geoFences, attendanceRecords, products, quotations, schedules,
   type User, type InsertUser, type Hospital, type InsertHospital,
   type GeoFence, type InsertGeoFence, type AttendanceRecord, type InsertAttendance,
   type Product, type InsertProduct, type Quotation, type InsertQuotation,
   type Schedule, type InsertSchedule
 } from "@shared/schema";
+import { FirestoreStorage } from "./firestore-storage";
 
 export interface IStorage {
   // Users
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
+  updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
 
   // Hospitals
-  getHospital(id: number): Promise<Hospital | undefined>;
+  getHospital(id: string): Promise<Hospital | undefined>;
   getAllHospitals(): Promise<Hospital[]>;
   createHospital(hospital: InsertHospital): Promise<Hospital>;
-  updateHospital(id: number, updates: Partial<InsertHospital>): Promise<Hospital | undefined>;
+  updateHospital(id: string, updates: Partial<InsertHospital>): Promise<Hospital | undefined>;
 
   // Geo Fences
-  getGeoFence(id: number): Promise<GeoFence | undefined>;
+  getGeoFence(id: string): Promise<GeoFence | undefined>;
   getAllGeoFences(): Promise<GeoFence[]>;
-  getGeoFencesByHospital(hospitalId: number): Promise<GeoFence[]>;
+  getGeoFencesByHospital(hospitalId: string): Promise<GeoFence[]>;
   createGeoFence(geoFence: InsertGeoFence): Promise<GeoFence>;
-  updateGeoFence(id: number, updates: Partial<InsertGeoFence>): Promise<GeoFence | undefined>;
-  deleteGeoFence(id: number): Promise<boolean>;
+  updateGeoFence(id: string, updates: Partial<InsertGeoFence>): Promise<GeoFence | undefined>;
+  deleteGeoFence(id: string): Promise<boolean>;
 
   // Attendance
-  getAttendanceRecord(id: number): Promise<AttendanceRecord | undefined>;
-  getAttendanceByUser(userId: number, date?: string): Promise<AttendanceRecord[]>;
+  getAttendanceRecord(id: string): Promise<AttendanceRecord | undefined>;
+  getAttendanceByUser(userId: string, date?: string): Promise<AttendanceRecord[]>;
   getAttendanceByDate(date: string): Promise<AttendanceRecord[]>;
   getAllAttendance(): Promise<AttendanceRecord[]>;
   createAttendance(attendance: InsertAttendance): Promise<AttendanceRecord>;
-  updateAttendance(id: number, updates: Partial<InsertAttendance>): Promise<AttendanceRecord | undefined>;
+  updateAttendance(id: string, updates: Partial<InsertAttendance>): Promise<AttendanceRecord | undefined>;
 
   // Products
-  getProduct(id: number): Promise<Product | undefined>;
+  getProduct(id: string): Promise<Product | undefined>;
   getAllProducts(): Promise<Product[]>;
   createProduct(product: InsertProduct): Promise<Product>;
-  updateProduct(id: number, updates: Partial<InsertProduct>): Promise<Product | undefined>;
+  updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product | undefined>;
 
   // Quotations
-  getQuotation(id: number): Promise<Quotation | undefined>;
-  getQuotationsByUser(userId: number): Promise<Quotation[]>;
+  getQuotation(id: string): Promise<Quotation | undefined>;
+  getQuotationsByUser(userId: string): Promise<Quotation[]>;
   getQuotationsByStatus(status: string): Promise<Quotation[]>;
   getAllQuotations(): Promise<Quotation[]>;
   createQuotation(quotation: InsertQuotation): Promise<Quotation>;
-  updateQuotation(id: number, updates: Partial<Quotation>): Promise<Quotation | undefined>;
+  updateQuotation(id: string, updates: Partial<Quotation>): Promise<Quotation | undefined>;
 
   // Schedules
-  getSchedule(id: number): Promise<Schedule | undefined>;
-  getSchedulesByUser(userId: number, date?: string): Promise<Schedule[]>;
+  getSchedule(id: string): Promise<Schedule | undefined>;
+  getSchedulesByUser(userId: string, date?: string): Promise<Schedule[]>;
   getAllSchedules(): Promise<Schedule[]>;
   createSchedule(schedule: InsertSchedule): Promise<Schedule>;
-  updateSchedule(id: number, updates: Partial<InsertSchedule>): Promise<Schedule | undefined>;
+  updateSchedule(id: string, updates: Partial<InsertSchedule>): Promise<Schedule | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -592,4 +592,16 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Try to use Firestore, fall back to MemStorage if Firestore is not available
+let storage: IStorage;
+
+try {
+  storage = new FirestoreStorage();
+  console.log('✅ Using Firestore storage');
+} catch (error) {
+  console.log('⚠️  Firestore not available, using in-memory storage as fallback');
+  console.log('Please enable Firestore API: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=medfield-ee2af');
+  storage = new MemStorage();
+}
+
+export { storage };

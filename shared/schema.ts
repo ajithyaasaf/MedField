@@ -1,127 +1,173 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, json } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  role: text("role").notNull(), // 'field_rep' | 'admin'
-  name: text("name").notNull(),
-  employeeId: text("employee_id").unique(),
-  territory: text("territory"),
-  assignedHospitals: json("assigned_hospitals").$type<string[]>().default([]),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
+// Firestore document interfaces
+export interface User {
+  id: string;
+  username: string;
+  password: string;
+  role: 'field_rep' | 'admin';
+  name: string;
+  employeeId?: string;
+  territory?: string;
+  assignedHospitals: string[];
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface Hospital {
+  id: string;
+  name: string;
+  address: string;
+  contactPerson?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  latitude?: number;
+  longitude?: number;
+  isActive: boolean;
+}
+
+export interface GeoFence {
+  id: string;
+  name: string;
+  hospitalId?: string;
+  centerLat: number;
+  centerLng: number;
+  radiusMeters: number;
+  isActive: boolean;
+}
+
+export interface AttendanceRecord {
+  id: string;
+  userId: string;
+  hospitalId?: string;
+  clockInTime?: Date;
+  clockOutTime?: Date;
+  clockInLat?: number;
+  clockInLng?: number;
+  clockOutLat?: number;
+  clockOutLng?: number;
+  withinGeoFence: boolean;
+  manualOverride: boolean;
+  date: string; // YYYY-MM-DD format
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  model?: string;
+  category: string;
+  basePrice: number;
+  description?: string;
+  isActive: boolean;
+}
+
+export interface Quotation {
+  id: string;
+  quotationNumber: string;
+  userId: string;
+  hospitalId: string;
+  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired';
+  totalAmount: number;
+  discountPercent: number;
+  notes?: string;
+  products: {id: string, quantity: number, unitPrice: number}[];
+  createdAt: Date;
+  sentAt?: Date;
+  expiresAt?: Date;
+  approvedBy?: string;
+  approvedAt?: Date;
+}
+
+export interface Schedule {
+  id: string;
+  userId: string;
+  hospitalId: string;
+  scheduledDate: Date;
+  startTime: string;
+  endTime: string;
+  status: 'confirmed' | 'pending' | 'cancelled';
+  notes?: string;
+}
+
+// Zod schemas for validation
+export const insertUserSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+  role: z.enum(['field_rep', 'admin']),
+  name: z.string().min(1),
+  employeeId: z.string().optional(),
+  territory: z.string().optional(),
+  assignedHospitals: z.array(z.string()).default([]),
+  isActive: z.boolean().default(true),
 });
 
-export const hospitals = pgTable("hospitals", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  address: text("address").notNull(),
-  contactPerson: text("contact_person"),
-  contactEmail: text("contact_email"),
-  contactPhone: text("contact_phone"),
-  latitude: decimal("latitude", { precision: 10, scale: 8 }),
-  longitude: decimal("longitude", { precision: 11, scale: 8 }),
-  isActive: boolean("is_active").default(true),
+export const insertHospitalSchema = z.object({
+  name: z.string().min(1),
+  address: z.string().min(1),
+  contactPerson: z.string().optional(),
+  contactEmail: z.string().email().optional().or(z.literal("")),
+  contactPhone: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  isActive: z.boolean().default(true),
 });
 
-export const geoFences = pgTable("geo_fences", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  hospitalId: integer("hospital_id").references(() => hospitals.id),
-  centerLat: decimal("center_lat", { precision: 10, scale: 8 }).notNull(),
-  centerLng: decimal("center_lng", { precision: 11, scale: 8 }).notNull(),
-  radiusMeters: integer("radius_meters").notNull(),
-  isActive: boolean("is_active").default(true),
+export const insertGeoFenceSchema = z.object({
+  name: z.string().min(1),
+  hospitalId: z.string().optional(),
+  centerLat: z.number(),
+  centerLng: z.number(),
+  radiusMeters: z.number().min(1),
+  isActive: z.boolean().default(true),
 });
 
-export const attendanceRecords = pgTable("attendance_records", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  hospitalId: integer("hospital_id").references(() => hospitals.id),
-  clockInTime: timestamp("clock_in_time"),
-  clockOutTime: timestamp("clock_out_time"),
-  clockInLat: decimal("clock_in_lat", { precision: 10, scale: 8 }),
-  clockInLng: decimal("clock_in_lng", { precision: 11, scale: 8 }),
-  clockOutLat: decimal("clock_out_lat", { precision: 10, scale: 8 }),
-  clockOutLng: decimal("clock_out_lng", { precision: 11, scale: 8 }),
-  withinGeoFence: boolean("within_geo_fence").default(false),
-  manualOverride: boolean("manual_override").default(false),
-  date: text("date").notNull(), // YYYY-MM-DD format
+export const insertAttendanceSchema = z.object({
+  userId: z.string(),
+  hospitalId: z.string().optional(),
+  clockInTime: z.date().optional(),
+  clockOutTime: z.date().optional(),
+  clockInLat: z.number().optional(),
+  clockInLng: z.number().optional(),
+  clockOutLat: z.number().optional(),
+  clockOutLng: z.number().optional(),
+  withinGeoFence: z.boolean().default(false),
+  manualOverride: z.boolean().default(false),
+  date: z.string(),
 });
 
-export const products = pgTable("products", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  model: text("model"),
-  category: text("category").notNull(),
-  basePrice: decimal("base_price", { precision: 12, scale: 2 }).notNull(),
-  description: text("description"),
-  isActive: boolean("is_active").default(true),
+export const insertProductSchema = z.object({
+  name: z.string().min(1),
+  model: z.string().optional(),
+  category: z.string().min(1),
+  basePrice: z.number().min(0),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
 });
 
-export const quotations = pgTable("quotations", {
-  id: serial("id").primaryKey(),
-  quotationNumber: text("quotation_number").notNull().unique(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  hospitalId: integer("hospital_id").references(() => hospitals.id).notNull(),
-  status: text("status").notNull(), // 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired'
-  totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull(),
-  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).default("0"),
-  notes: text("notes"),
-  products: json("products").$type<{id: number, quantity: number, unitPrice: string}[]>().notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  sentAt: timestamp("sent_at"),
-  expiresAt: timestamp("expires_at"),
-  approvedBy: integer("approved_by").references(() => users.id),
-  approvedAt: timestamp("approved_at"),
+export const insertQuotationSchema = z.object({
+  userId: z.string(),
+  hospitalId: z.string(),
+  status: z.enum(['draft', 'sent', 'accepted', 'rejected', 'expired']),
+  totalAmount: z.number().min(0),
+  discountPercent: z.number().min(0).max(100).default(0),
+  notes: z.string().optional(),
+  products: z.array(z.object({
+    id: z.string(),
+    quantity: z.number().min(1),
+    unitPrice: z.number().min(0),
+  })),
+  expiresAt: z.date().optional(),
+  approvedBy: z.string().optional(),
 });
 
-export const schedules = pgTable("schedules", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  hospitalId: integer("hospital_id").references(() => hospitals.id).notNull(),
-  scheduledDate: timestamp("scheduled_date").notNull(),
-  startTime: text("start_time").notNull(),
-  endTime: text("end_time").notNull(),
-  status: text("status").notNull(), // 'confirmed' | 'pending' | 'cancelled'
-  notes: text("notes"),
-});
-
-// Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertHospitalSchema = createInsertSchema(hospitals).omit({
-  id: true,
-});
-
-export const insertGeoFenceSchema = createInsertSchema(geoFences).omit({
-  id: true,
-});
-
-export const insertAttendanceSchema = createInsertSchema(attendanceRecords).omit({
-  id: true,
-});
-
-export const insertProductSchema = createInsertSchema(products).omit({
-  id: true,
-});
-
-export const insertQuotationSchema = createInsertSchema(quotations).omit({
-  id: true,
-  quotationNumber: true,
-  createdAt: true,
-  sentAt: true,
-  approvedAt: true,
-});
-
-export const insertScheduleSchema = createInsertSchema(schedules).omit({
-  id: true,
+export const insertScheduleSchema = z.object({
+  userId: z.string(),
+  hospitalId: z.string(),
+  scheduledDate: z.date(),
+  startTime: z.string(),
+  endTime: z.string(),
+  status: z.enum(['confirmed', 'pending', 'cancelled']),
+  notes: z.string().optional(),
 });
 
 // Login schema
@@ -130,19 +176,12 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-// Types
-export type User = typeof users.$inferSelect;
+// Insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type Hospital = typeof hospitals.$inferSelect;
 export type InsertHospital = z.infer<typeof insertHospitalSchema>;
-export type GeoFence = typeof geoFences.$inferSelect;
 export type InsertGeoFence = z.infer<typeof insertGeoFenceSchema>;
-export type AttendanceRecord = typeof attendanceRecords.$inferSelect;
 export type InsertAttendance = z.infer<typeof insertAttendanceSchema>;
-export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type Quotation = typeof quotations.$inferSelect;
 export type InsertQuotation = z.infer<typeof insertQuotationSchema>;
-export type Schedule = typeof schedules.$inferSelect;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type LoginData = z.infer<typeof loginSchema>;
