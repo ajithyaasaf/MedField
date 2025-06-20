@@ -30,11 +30,30 @@ function requireAdmin(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add middleware to log all requests
+  app.use('/api', (req, res, next) => {
+    console.log(`API Request: ${req.method} ${req.path}`, req.body);
+    next();
+  });
+
+  // Test route
+  app.get("/api/test", (req, res) => {
+    console.log('Test route hit');
+    res.json({ message: "Test route working" });
+  });
+
   // Authentication routes
   app.post("/api/auth/login", async (req, res) => {
+    console.log('=== LOGIN ROUTE HIT ===');
     try {
+      console.log('Login request body:', req.body);
+      console.log('Login request headers:', req.headers);
+      
       const { username, password } = loginSchema.parse(req.body);
+      console.log('Parsed credentials:', { username, passwordLength: password?.length });
+      
       const user = await storage.getUserByUsername(username);
+      console.log('Found user:', user ? { id: user.id, username: user.username, role: user.role } : 'Not found');
       
       if (!user || user.password !== password) {
         return res.status(401).json({ message: "Invalid credentials" });
@@ -52,7 +71,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } 
       });
     } catch (error) {
-      res.status(400).json({ message: "Invalid request" });
+      console.error('Login error details:', error);
+      res.status(400).json({ message: "Invalid request data" });
     }
   });
 
