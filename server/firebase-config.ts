@@ -16,6 +16,7 @@ export function initializeFirebase() {
         const serviceAccountKey: ServiceAccount = JSON.parse(serviceAccount);
         firebaseApp = initializeApp({
           credential: cert(serviceAccountKey),
+          databaseURL: `https://${serviceAccountKey.project_id}-default-rtdb.firebaseio.com/`
         });
         
         console.log('Firebase initialized with service account for project:', serviceAccountKey.project_id);

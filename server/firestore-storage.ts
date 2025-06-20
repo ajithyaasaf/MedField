@@ -24,6 +24,9 @@ export class FirestoreStorage implements IStorage {
 
   private async initializeSampleData() {
     try {
+      // Try to access the database first to ensure it exists
+      await this.db.listCollections();
+      
       // Check if we already have data
       const usersSnapshot = await this.db.collection('users').limit(1).get();
       if (!usersSnapshot.empty) {

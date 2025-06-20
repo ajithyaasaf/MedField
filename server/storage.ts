@@ -595,13 +595,27 @@ export class MemStorage implements IStorage {
 // Try to use Firestore, fall back to MemStorage if Firestore is not available
 let storage: IStorage;
 
-try {
-  storage = new FirestoreStorage();
-  console.log('✅ Using Firestore storage');
-} catch (error) {
-  console.log('⚠️  Firestore not available, using in-memory storage as fallback');
-  console.log('Please enable Firestore API: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=medfield-ee2af');
-  storage = new MemStorage();
+async function initializeStorage() {
+  try {
+    const firestoreStorage = new FirestoreStorage();
+    // Test the connection
+    await firestoreStorage.getAllUsers();
+    storage = firestoreStorage;
+    console.log('✅ Using Firestore storage');
+  } catch (error) {
+    console.log('⚠️  Firestore database not ready, using in-memory storage as fallback');
+    console.log('Please create Firestore database: https://console.firebase.google.com/project/medfield-ee2af/firestore');
+    storage = new MemStorage();
+  }
 }
+
+// Initialize with memory storage immediately, then switch to Firestore when ready
+storage = new MemStorage();
+console.log('📝 Starting with in-memory storage...');
+
+// Try to initialize Firestore in the background
+initializeStorage().catch(() => {
+  console.log('Continuing with in-memory storage');
+});
 
 export { storage };
