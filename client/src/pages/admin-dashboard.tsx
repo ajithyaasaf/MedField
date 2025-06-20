@@ -25,11 +25,13 @@ import { useToast } from "@/hooks/use-toast";
 import MapComponent from "@/components/ui/map";
 import GeoFenceManager from "@/components/geo-fence-manager";
 import UserManagement from "@/components/user-management";
+import ManualAttendanceApproval from "@/components/manual-attendance-approval";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showGeoFenceManager, setShowGeoFenceManager] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
+  const [showAttendanceApproval, setShowAttendanceApproval] = useState(false);
   const { toast } = useToast();
 
   const { data: user } = useQuery({
@@ -422,6 +424,12 @@ export default function AdminDashboard() {
         <UserManagement
           onClose={() => setShowUserManagement(false)}
           hospitals={hospitals || []}
+        />
+      )}
+
+      {showAttendanceApproval && (
+        <ManualAttendanceApproval
+          onClose={() => setShowAttendanceApproval(false)}
         />
       )}
     </div>

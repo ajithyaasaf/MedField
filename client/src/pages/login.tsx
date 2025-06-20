@@ -10,9 +10,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { HeartPulse, User, Lock } from "lucide-react";
 import { loginSchema, type LoginData } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import Admin2FA from "@/components/admin-2fa";
 
 export default function Login() {
   const [error, setError] = useState<string>("");
+  const [showTwoFA, setShowTwoFA] = useState(false);
+  const [pendingUser, setPendingUser] = useState<any>(null);
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -27,14 +30,27 @@ export default function Login() {
       const response = await apiRequest("POST", "/api/auth/login", data);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      setError("");
+    onSuccess: (data) => {
+      // Check if user is admin and requires 2FA
+      if (data.user.role === 'admin') {
+        setPendingUser(data.user);
+        setShowTwoFA(true);
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+        setError("");
+      }
     },
     onError: (error: any) => {
       setError(error.message || "Login failed");
     },
   });
+
+  const handle2FAVerified = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    setShowTwoFA(false);
+    setPendingUser(null);
+    setError("");
+  };
 
   const onSubmit = (data: LoginData) => {
     setError("");
@@ -134,6 +150,18 @@ export default function Login() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 2FA Modal for Admin Users */}
+      {showTwoFA && pendingUser && (
+        <Admin2FA
+          onClose={() => {
+            setShowTwoFA(false);
+            setPendingUser(null);
+          }}
+          onVerified={handle2FAVerified}
+          userEmail={pendingUser.username}
+        />
+      )}
     </div>
   );
 }

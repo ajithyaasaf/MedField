@@ -11,6 +11,7 @@ import {
   insertScheduleSchema,
   loginSchema,
 } from "@shared/schema";
+import { emailSMSService } from "./email-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication middleware

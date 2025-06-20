@@ -27,6 +27,9 @@ import { format, isToday, differenceInMinutes } from "date-fns";
 import QuotationBuilder from "@/components/quotation-builder";
 import ScheduleManager from "@/components/schedule-manager";
 import NotificationPanel from "@/components/notification-panel";
+import NotificationSettings from "@/components/notification-settings";
+import QuotationList from "@/components/quotation-list";
+import { LanguageSelector } from "@/components/internationalization";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +39,8 @@ export default function FieldRepDashboard() {
   const [showQuotationBuilder, setShowQuotationBuilder] = useState(false);
   const [showScheduleManager, setShowScheduleManager] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  const [showQuotationList, setShowQuotationList] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const { toast } = useToast();
   const { location, error: locationError } = useGeolocation();
@@ -63,6 +68,10 @@ export default function FieldRepDashboard() {
   const { data: geoFences } = useQuery({
     queryKey: ['/api/geo-fences'],
   });
+
+  const todayAttendance = attendance?.find((record: any) => 
+    record.date === new Date().toISOString().split('T')[0] && !record.clockOutTime
+  );
 
   // Generate notifications based on app state
   useEffect(() => {
@@ -214,10 +223,6 @@ export default function FieldRepDashboard() {
     });
   };
 
-  const todayAttendance = attendance?.find((record: any) => 
-    record.date === new Date().toISOString().split('T')[0] && !record.clockOutTime
-  );
-
   const isRep = user?.user?.role === 'field_rep';
   if (!isRep) return null;
 
@@ -249,6 +254,8 @@ export default function FieldRepDashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
+              <LanguageSelector />
+              
               <div className="relative">
                 <Button 
                   variant="ghost" 
@@ -263,6 +270,14 @@ export default function FieldRepDashboard() {
                   )}
                 </Button>
               </div>
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowNotificationSettings(true)}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
               
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4 text-medical-gray" />
@@ -574,6 +589,22 @@ export default function FieldRepDashboard() {
         <ScheduleManager
           onClose={() => setShowScheduleManager(false)}
           hospitals={hospitals || []}
+        />
+      )}
+
+      {showNotificationSettings && (
+        <NotificationSettings
+          onClose={() => setShowNotificationSettings(false)}
+        />
+      )}
+
+      {showQuotationList && (
+        <QuotationList
+          onClose={() => setShowQuotationList(false)}
+          onCreateNew={() => {
+            setShowQuotationList(false);
+            setShowQuotationBuilder(true);
+          }}
         />
       )}
     </div>
