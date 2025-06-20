@@ -246,10 +246,10 @@ export default function ActivityFeed({ className }: ActivityFeedProps) {
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center space-x-2">
                         <span className="font-medium text-medical-gray-dark">
-                          {activity.user.name}
+                          {activity.user?.name || 'Unknown User'}
                         </span>
                         <Badge variant="secondary" className="text-xs">
-                          {activity.user.role.replace('_', ' ')}
+                          {activity.user?.role?.replace('_', ' ') || 'Unknown Role'}
                         </Badge>
                       </div>
                       <span className="text-xs text-medical-gray">

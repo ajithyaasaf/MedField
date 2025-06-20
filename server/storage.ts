@@ -470,6 +470,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.attendanceRecords.values()).filter(record => record.date === date);
   }
 
+  async getAllAttendance(): Promise<AttendanceRecord[]> {
+    return Array.from(this.attendanceRecords.values());
+  }
+
   async createAttendance(insertAttendance: InsertAttendance): Promise<AttendanceRecord> {
     const id = this.currentId.attendanceRecords++;
     const attendance: AttendanceRecord = { ...insertAttendance, id };
@@ -565,6 +569,10 @@ export class MemStorage implements IStorage {
       return schedules.filter(s => s.scheduledDate.toISOString().split('T')[0] === date);
     }
     return schedules;
+  }
+
+  async getAllSchedules(): Promise<Schedule[]> {
+    return Array.from(this.schedules.values());
   }
 
   async createSchedule(insertSchedule: InsertSchedule): Promise<Schedule> {

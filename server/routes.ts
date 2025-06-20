@@ -449,15 +449,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { filter = 'all' } = req.query;
       
-      // Mock activity data
+      // Get current user info
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Mock activity data with proper user information
       const activities = [
         {
           id: 1,
           type: 'attendance',
-          userId: req.session.userId,
+          user: {
+            id: currentUser.id,
+            name: currentUser.name,
+            role: currentUser.role
+          },
           action: 'clocked in',
-          timestamp: new Date().toISOString(),
-          metadata: { location: 'Hospital A' }
+          target: {
+            type: 'hospital',
+            name: 'St. Mary\'s Hospital',
+            id: '1'
+          },
+          metadata: { location: 'Hospital A' },
+          timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+          priority: 'medium'
+        },
+        {
+          id: 2,
+          type: 'quotation',
+          user: {
+            id: currentUser.id,
+            name: currentUser.name,
+            role: currentUser.role
+          },
+          action: 'created new quotation',
+          target: {
+            type: 'quotation',
+            name: 'Q-2024-001',
+            id: '1'
+          },
+          metadata: { amount: 15000 },
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+          priority: 'high'
+        },
+        {
+          id: 3,
+          type: 'system',
+          user: {
+            id: currentUser.id,
+            name: currentUser.name,
+            role: currentUser.role
+          },
+          action: 'logged into system',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
+          priority: 'low'
         }
       ];
       
