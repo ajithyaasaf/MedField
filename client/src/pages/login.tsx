@@ -31,14 +31,9 @@ export default function Login() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Check if user is admin and requires 2FA
-      if (data.user.role === 'admin') {
-        setPendingUser(data.user);
-        setShowTwoFA(true);
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-        setError("");
-      }
+      // 2FA disabled for now - direct login for admin
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      setError("");
     },
     onError: (error: any) => {
       setError(error.message || "Login failed");
