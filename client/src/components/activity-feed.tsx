@@ -187,7 +187,7 @@ export default function ActivityFeed({ className }: ActivityFeedProps) {
   return (
     <Card className={className}>
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <CardTitle className="flex items-center">
             <Activity className="h-5 w-5 mr-2 text-medical-blue" />
             Live Activity Feed
@@ -200,15 +200,17 @@ export default function ActivityFeed({ className }: ActivityFeedProps) {
               className={autoRefresh ? "bg-medical-green" : ""}
             >
               <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline ml-1">Auto</span>
             </Button>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
-              Refresh
+              <RefreshCw className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
           </div>
         </div>
         
         {/* Activity Type Filters */}
-        <div className="flex space-x-2 mt-4">
+        <div className="flex flex-wrap gap-2 mt-4">
           {activityTypes.map((type) => (
             <Button
               key={type.value}
@@ -218,7 +220,8 @@ export default function ActivityFeed({ className }: ActivityFeedProps) {
               className={filter === type.value ? "bg-medical-blue" : ""}
             >
               <type.icon className="h-4 w-4 mr-1" />
-              {type.label}
+              <span className="hidden sm:inline">{type.label}</span>
+              <span className="sm:hidden">{type.label.substring(0, 3)}</span>
             </Button>
           ))}
         </div>
@@ -235,57 +238,59 @@ export default function ActivityFeed({ className }: ActivityFeedProps) {
             {filteredActivities.map((activity) => (
               <div
                 key={activity.id}
-                className={`border-l-4 ${getPriorityColor(activity.priority)} bg-gray-50 p-4 rounded-r-lg`}
+                className={`border-l-4 ${getPriorityColor(activity.priority)} bg-gray-50 p-3 sm:p-4 rounded-r-lg`}
               >
-                <div className="flex items-start space-x-3">
-                  <div className="bg-white p-2 rounded-full shadow-sm">
+                <div className="flex items-start space-x-2 sm:space-x-3">
+                  <div className="bg-white p-1.5 sm:p-2 rounded-full shadow-sm flex-shrink-0">
                     {getActivityIcon(activity.type, activity.action)}
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium text-medical-gray-dark">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-1 sm:gap-0">
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <span className="font-medium text-medical-gray-dark text-sm sm:text-base truncate">
                           {activity.user?.name || 'Unknown User'}
                         </span>
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs flex-shrink-0">
                           {activity.user?.role?.replace('_', ' ') || 'Unknown Role'}
                         </Badge>
                       </div>
-                      <span className="text-xs text-medical-gray">
+                      <span className="text-xs text-medical-gray flex-shrink-0">
                         {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
                       </span>
                     </div>
                     
-                    <p className="text-sm text-medical-gray mb-2">
+                    <p className="text-xs sm:text-sm text-medical-gray mb-2">
                       {getActionDescription(activity)}
                     </p>
                     
                     {activity.metadata && (
                       <div className="text-xs text-medical-gray space-y-1">
                         {activity.metadata.reason && (
-                          <p className="bg-yellow-50 text-yellow-800 p-2 rounded">
+                          <p className="bg-yellow-50 text-yellow-800 p-2 rounded text-xs">
                             <strong>Reason:</strong> {activity.metadata.reason}
                           </p>
                         )}
                         {activity.metadata.notes && (
-                          <p className="bg-blue-50 text-blue-800 p-2 rounded">
+                          <p className="bg-blue-50 text-blue-800 p-2 rounded text-xs">
                             <strong>Notes:</strong> {activity.metadata.notes}
                           </p>
                         )}
-                        {activity.metadata.gpsAccuracy && (
-                          <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded">
-                            GPS: {activity.metadata.gpsAccuracy}
-                          </span>
-                        )}
-                        {activity.metadata.status && (
-                          <Badge 
-                            variant={activity.metadata.status === 'pending' ? 'outline' : 'default'}
-                            className="ml-2"
-                          >
-                            {activity.metadata.status}
-                          </Badge>
-                        )}
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                          {activity.metadata.gpsAccuracy && (
+                            <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                              GPS: {activity.metadata.gpsAccuracy}
+                            </span>
+                          )}
+                          {activity.metadata.status && (
+                            <Badge 
+                              variant={activity.metadata.status === 'pending' ? 'outline' : 'default'}
+                              className="text-xs"
+                            >
+                              {activity.metadata.status}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
