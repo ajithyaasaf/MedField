@@ -52,6 +52,7 @@ export interface IStorage {
   // Schedules
   getSchedule(id: number): Promise<Schedule | undefined>;
   getSchedulesByUser(userId: number, date?: string): Promise<Schedule[]>;
+  getAllSchedules(): Promise<Schedule[]>;
   createSchedule(schedule: InsertSchedule): Promise<Schedule>;
   updateSchedule(id: number, updates: Partial<InsertSchedule>): Promise<Schedule | undefined>;
 }
@@ -89,7 +90,7 @@ export class MemStorage implements IStorage {
   }
 
   private initializeSampleData() {
-    // Create admin user
+    // Create admin users
     const admin: User = {
       id: this.currentId.users++,
       username: "admin",
@@ -104,7 +105,21 @@ export class MemStorage implements IStorage {
     };
     this.users.set(admin.id, admin);
 
-    // Create field rep user
+    const admin2: User = {
+      id: this.currentId.users++,
+      username: "manager",
+      password: "manager123",
+      role: "admin",
+      name: "Regional Manager",
+      employeeId: "ADMIN002",
+      territory: "Central Region",
+      assignedHospitals: [],
+      isActive: true,
+      createdAt: new Date(),
+    };
+    this.users.set(admin2.id, admin2);
+
+    // Create field rep users
     const fieldRep: User = {
       id: this.currentId.users++,
       username: "sarah.johnson",
@@ -113,61 +128,225 @@ export class MemStorage implements IStorage {
       name: "Sarah Johnson",
       employeeId: "REP001",
       territory: "Downtown",
-      assignedHospitals: [1, 2],
+      assignedHospitals: [1, 2, 3],
       isActive: true,
       createdAt: new Date(),
     };
     this.users.set(fieldRep.id, fieldRep);
 
-    // Create hospitals
-    const hospital1: Hospital = {
-      id: this.currentId.hospitals++,
-      name: "St. Mary's Hospital",
-      address: "123 Healthcare Blvd, Medical District",
-      contactPerson: "Dr. Michael Thompson",
-      contactEmail: "contact@stmarys.com",
-      contactPhone: "+1-555-0123",
-      latitude: "40.7589",
-      longitude: "-73.9851",
+    const fieldRep2: User = {
+      id: this.currentId.users++,
+      username: "mike.chen",
+      password: "password123",
+      role: "field_rep",
+      name: "Mike Chen",
+      employeeId: "REP002",
+      territory: "North District",
+      assignedHospitals: [4, 5, 6],
       isActive: true,
+      createdAt: new Date(),
     };
-    this.hospitals.set(hospital1.id, hospital1);
+    this.users.set(fieldRep2.id, fieldRep2);
 
-    const hospital2: Hospital = {
-      id: this.currentId.hospitals++,
-      name: "General Medical Center",
-      address: "456 Health Ave, Downtown",
-      contactPerson: "Dr. Lisa Chen",
-      contactEmail: "info@generalmed.com",
-      contactPhone: "+1-555-0456",
-      latitude: "40.7505",
-      longitude: "-73.9934",
+    const fieldRep3: User = {
+      id: this.currentId.users++,
+      username: "anna.martinez",
+      password: "password123",
+      role: "field_rep",
+      name: "Anna Martinez",
+      employeeId: "REP003",
+      territory: "South Zone",
+      assignedHospitals: [7, 8, 9],
       isActive: true,
+      createdAt: new Date(),
     };
-    this.hospitals.set(hospital2.id, hospital2);
+    this.users.set(fieldRep3.id, fieldRep3);
 
-    // Create products
-    const product1: Product = {
-      id: this.currentId.products++,
-      name: "Digital X-Ray System",
-      model: "DXR-3000 Pro",
-      category: "Imaging Equipment",
-      basePrice: "45000.00",
-      description: "Advanced digital radiography system with high-resolution imaging",
-      isActive: true,
-    };
-    this.products.set(product1.id, product1);
+    // Create 10 hospitals as per requirements
+    const hospitals = [
+      {
+        name: "St. Mary's Hospital",
+        address: "123 Healthcare Blvd, Medical District",
+        contactPerson: "Dr. Michael Thompson",
+        contactEmail: "contact@stmarys.com",
+        contactPhone: "+1-555-0123",
+        latitude: "40.7589",
+        longitude: "-73.9851",
+      },
+      {
+        name: "General Medical Center",
+        address: "456 Health Ave, Downtown",
+        contactPerson: "Dr. Lisa Chen",
+        contactEmail: "info@generalmed.com",
+        contactPhone: "+1-555-0456",
+        latitude: "40.7505",
+        longitude: "-73.9934",
+      },
+      {
+        name: "City General Hospital",
+        address: "789 Medical Plaza, City Center",
+        contactPerson: "Dr. Robert Davis",
+        contactEmail: "admin@citygeneral.com",
+        contactPhone: "+1-555-0789",
+        latitude: "40.7614",
+        longitude: "-73.9776",
+      },
+      {
+        name: "Regional Medical Center",
+        address: "321 Hospital Dr, North District",
+        contactPerson: "Dr. Emily Wilson",
+        contactEmail: "contact@regionalmed.com",
+        contactPhone: "+1-555-0321",
+        latitude: "40.7831",
+        longitude: "-73.9712",
+      },
+      {
+        name: "Metropolitan Hospital",
+        address: "654 Care Blvd, Metro Area",
+        contactPerson: "Dr. James Miller",
+        contactEmail: "info@metrohosp.com",
+        contactPhone: "+1-555-0654",
+        latitude: "40.7484",
+        longitude: "-73.9857",
+      },
+      {
+        name: "University Medical Center",
+        address: "987 Academic Ave, University District",
+        contactPerson: "Dr. Sarah Williams",
+        contactEmail: "contact@umc.edu",
+        contactPhone: "+1-555-0987",
+        latitude: "40.7549",
+        longitude: "-73.9840",
+      },
+      {
+        name: "Children's Hospital",
+        address: "147 Pediatric Way, Family Zone",
+        contactPerson: "Dr. Amanda Brown",
+        contactEmail: "info@childrenshosp.com",
+        contactPhone: "+1-555-0147",
+        latitude: "40.7677",
+        longitude: "-73.9803",
+      },
+      {
+        name: "Cardiac Care Center",
+        address: "258 Heart Lane, Specialty District",
+        contactPerson: "Dr. David Garcia",
+        contactEmail: "contact@cardiaccare.com",
+        contactPhone: "+1-555-0258",
+        latitude: "40.7720",
+        longitude: "-73.9759",
+      },
+      {
+        name: "Surgical Institute",
+        address: "369 Surgery Blvd, Medical Campus",
+        contactPerson: "Dr. Jennifer Lee",
+        contactEmail: "admin@surginst.com",
+        contactPhone: "+1-555-0369",
+        latitude: "40.7563",
+        longitude: "-73.9888",
+      },
+      {
+        name: "Emergency Medical Center",
+        address: "741 Emergency Ave, Trauma Zone",
+        contactPerson: "Dr. Mark Johnson",
+        contactEmail: "contact@emergencymed.com",
+        contactPhone: "+1-555-0741",
+        latitude: "40.7598",
+        longitude: "-73.9795",
+      }
+    ];
 
-    const product2: Product = {
-      id: this.currentId.products++,
-      name: "Patient Monitoring System",
-      model: "PMS-200 Advanced",
-      category: "Monitoring Equipment",
-      basePrice: "15500.00",
-      description: "Multi-parameter patient monitoring with wireless connectivity",
-      isActive: true,
-    };
-    this.products.set(product2.id, product2);
+    hospitals.forEach(hospitalData => {
+      const hospital: Hospital = {
+        id: this.currentId.hospitals++,
+        ...hospitalData,
+        isActive: true,
+      };
+      this.hospitals.set(hospital.id, hospital);
+    });
+
+    // Create 10 products/services as per requirements
+    const products = [
+      {
+        name: "Digital X-Ray System",
+        model: "DXR-3000 Pro",
+        category: "Imaging Equipment",
+        basePrice: "45000.00",
+        description: "Advanced digital radiography system with high-resolution imaging",
+      },
+      {
+        name: "Patient Monitoring System",
+        model: "PMS-200 Advanced",
+        category: "Monitoring Equipment",
+        basePrice: "15500.00",
+        description: "Multi-parameter patient monitoring with wireless connectivity",
+      },
+      {
+        name: "Ultrasound Machine",
+        model: "US-4000 Elite",
+        category: "Imaging Equipment",
+        basePrice: "35000.00",
+        description: "High-definition ultrasound system with 3D/4D capabilities",
+      },
+      {
+        name: "Defibrillator",
+        model: "DEF-500 Life",
+        category: "Emergency Equipment",
+        basePrice: "8500.00",
+        description: "Automated external defibrillator with voice prompts",
+      },
+      {
+        name: "Surgical Lighting System",
+        model: "SLS-1000 Bright",
+        category: "Surgical Equipment",
+        basePrice: "12000.00",
+        description: "LED surgical lighting system with shadow management",
+      },
+      {
+        name: "Ventilator",
+        model: "VENT-300 Pro",
+        category: "Respiratory Equipment",
+        basePrice: "28000.00",
+        description: "Advanced mechanical ventilator for critical care",
+      },
+      {
+        name: "Anesthesia Machine",
+        model: "ANESTH-250 Safe",
+        category: "Anesthesia Equipment",
+        basePrice: "42000.00",
+        description: "Multi-gas anesthesia delivery system with monitoring",
+      },
+      {
+        name: "Hospital Bed",
+        model: "BED-100 Comfort",
+        category: "Patient Care",
+        basePrice: "3500.00",
+        description: "Electric hospital bed with integrated controls",
+      },
+      {
+        name: "Infusion Pump",
+        model: "INF-150 Smart",
+        category: "Drug Delivery",
+        basePrice: "2800.00",
+        description: "Smart infusion pump with dose error reduction",
+      },
+      {
+        name: "Sterilization System",
+        model: "STER-400 Clean",
+        category: "Sterilization",
+        basePrice: "18000.00",
+        description: "Steam sterilization system for surgical instruments",
+      }
+    ];
+
+    products.forEach(productData => {
+      const product: Product = {
+        id: this.currentId.products++,
+        ...productData,
+        isActive: true,
+      };
+      this.products.set(product.id, product);
+    });
 
     // Create geo-fences
     const geoFence1: GeoFence = {

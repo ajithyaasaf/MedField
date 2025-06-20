@@ -1,0 +1,86 @@
+🚩 Phase 1: Discovery & Foundation
+1.	Project Setup
+o	Initialize /client (React + Tailwind or MUI) and /server (Node + Express).
+o	Configure Firestore, Firebase Auth, and environment variables.
+o	Scaffold folder structure, ESLint/Prettier, CI/CD stub (GitHub Actions).
+o	Create mock data: 10 hospitals, 10 products/services, 3 sample Field Reps, 2 admin users.
+2.	User Onboarding & Auth
+o	Field Rep sign up / first time flow:
+	T&Cs acceptance, request geolocation permissions
+	Profile form: name, employee ID, assigned territory/hospitals
+o	Admin login with email/password + 2FA stub.
+3.	Shared Components & Utilities
+o	i18n setup for English/Tamil.
+o	Common UI: Header, Nav, Buttons, Modals, Notification & Skeleton loaders.
+o	Geo fence utility: permission checks, mock map API integration.
+________________________________________
+🛠 
+
+Phase 2: Core Field Rep Features
+1.	Dashboard & Scheduling
+o	Today’s schedule list (calendar lookup or Firestore query).
+o	Attendance status display (clocked in/out).
+o	Quick action buttons: Clock In/Out & New Quotation.
+2.	Geo Fenced Attendance
+o	Auto detect GPS inside zones; otherwise warn + request manual approval.
+o	Firestore collection: attendance with { repId, timestamp, type, location, approvedBy }.
+3.	Quotation Flow
+o	“New Quotation” screen:
+	Select hospital
+	Choose products/services (pricing & discount rules)
+	Auto fill hospital info from Firestore
+	Notes & next steps
+o	Preview & generate PDF (use pdfkit or similar)
+o	“Send” via email/SMS link (simulate with nodemailer/mock)
+o	Firestore quotations collection with status transitions: Draft → Sent → Accepted/Rejected
+o	“My Quotations” list: filter by status, view/resend/clone
+4.	Notifications & Reminders
+o	Client side push reminders:
+	Clock out if end of day near
+	Quotation expiring soon
+o	Settings: notification preferences
+________________________________________
+🔧 Phase 3: Core Admin Features
+1.	Admin Dashboard
+o	Attendance Overview:
+	Live map of reps (inside/outside zones)
+	KPIs: today’s check ins, missed, late entries
+o	Quotation Overview:
+	Totals: sent/approved/rejected this period
+	Top hospitals by revenue
+o	Trend charts and KPI cards
+2.	Geo Fence Management
+o	Draw zones on map or upload coords
+o	Assign zones to teams/regions
+o	Configure attendance rules (grace periods, checkpoints)
+3.	User & Role Management
+o	Invite & onboard Field Reps, assign territories
+o	Roles/permissions: Sales Lead, Manager, Admin
+4.	Quotation Management
+o	Review pending quotes: Approve, request changes
+o	Bulk export PDFs, send reminders
+o	Template library for products/services & pricing rules
+5.	Reports & Analytics
+o	Attendance reports by day/week/month
+o	Quotation funnel analysis (draft → won/lost)
+o	Revenue forecasts by region/rep
+6.	System Settings
+o	Company branding (for PDFs/emails)
+o	Notification templates (email/SMS)
+o	Audit logs & security controls
+________________________________________
+🌟 Phase 4: Polish & Extra Modules
+1.	Offline Mode
+o	Cache last hospital list & draft quotes, auto sync on reconnect
+2.	Push Notifications
+o	Remind reps near zones, alert admins of no shows
+3.	Activity Feed & Chat
+o	Live timeline: clock ins, quote events
+o	In app messaging between reps & admins on quotes
+4.	Document Management
+o	Upload attachments (hospital approvals, signed contracts)
+5.	Multi Language & Accessibility
+o	Complete Tamil translations
+o	WCAG compliant components, ARIA labels
+6.	Audit & Compliance
+o	Tamper proof location logs, retention policies

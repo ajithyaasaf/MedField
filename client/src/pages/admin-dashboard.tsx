@@ -24,10 +24,12 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import MapComponent from "@/components/ui/map";
 import GeoFenceManager from "@/components/geo-fence-manager";
+import UserManagement from "@/components/user-management";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showGeoFenceManager, setShowGeoFenceManager] = useState(false);
+  const [showUserManagement, setShowUserManagement] = useState(false);
   const { toast } = useToast();
 
   const { data: user } = useQuery({
@@ -388,7 +390,7 @@ export default function AdminDashboard() {
                   </Button>
                   <Button
                     className="w-full bg-medical-green hover:bg-medical-green-dark justify-start"
-                    onClick={() => {}}
+                    onClick={() => setShowUserManagement(true)}
                   >
                     <Users className="w-4 h-4 mr-3" />
                     User Management
@@ -413,6 +415,13 @@ export default function AdminDashboard() {
           onClose={() => setShowGeoFenceManager(false)}
           hospitals={hospitals || []}
           geoFences={geoFences || []}
+        />
+      )}
+
+      {showUserManagement && (
+        <UserManagement
+          onClose={() => setShowUserManagement(false)}
+          hospitals={hospitals || []}
         />
       )}
     </div>
