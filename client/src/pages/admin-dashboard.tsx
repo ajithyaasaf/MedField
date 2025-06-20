@@ -299,16 +299,16 @@ export default function AdminDashboard() {
             <CardContent className="p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-medical-gray">Conversion Rate</p>
-                  <p className="text-3xl font-bold text-medical-gray-dark">{conversionRate}%</p>
+                  <p className="text-xs lg:text-sm font-medium text-purple-700 mb-1">Conversion Rate</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-purple-900">{conversionRate}%</p>
+                  <div className="mt-2 lg:mt-4 flex items-center text-xs lg:text-sm">
+                    <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4 text-green-600 mr-1" />
+                    <span className="text-green-600 font-medium">5.3% improvement</span>
+                  </div>
                 </div>
-                <div className="bg-medical-green bg-opacity-10 p-3 rounded-full">
-                  <TrendingUp className="text-medical-green text-xl" />
+                <div className="p-3 lg:p-4 bg-purple-600 rounded-xl shadow-lg group-hover:bg-purple-700 transition-colors">
+                  <TrendingUp className="text-white w-5 h-5 lg:w-6 lg:h-6" />
                 </div>
-              </div>
-              <div className="mt-4 flex items-center text-sm">
-                <TrendingUp className="w-4 h-4 text-medical-green mr-1" />
-                <span className="text-medical-green">5.4% from last month</span>
               </div>
             </CardContent>
           </Card>
@@ -561,7 +561,7 @@ export default function AdminDashboard() {
                   <CardHeader className="pb-4">
                     <CardTitle className="text-lg flex items-center">
                       <div className="p-2 bg-indigo-100 rounded-lg mr-3">
-                        <Zap className="w-4 h-4 text-indigo-600" />
+                        <TrendingUp className="w-4 h-4 text-indigo-600" />
                       </div>
                       Quick Actions
                     </CardTitle>

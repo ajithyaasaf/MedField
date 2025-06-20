@@ -79,10 +79,10 @@ export class FirestoreStorage implements IStorage {
 
     const fieldRepRef2 = this.db.collection('users').doc();
     await fieldRepRef2.set({
-      username: "jane_smith",
+      username: "sarah.johnson",
       password: "password123",
       role: "field_rep",
-      name: "Jane Smith",
+      name: "Sarah Johnson",
       employeeId: "FR002",
       territory: "South District",
       assignedHospitals: [],

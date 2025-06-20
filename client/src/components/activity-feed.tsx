@@ -1,23 +1,27 @@
-
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  Activity, 
   Clock, 
   FileText, 
-  MapPin, 
   User, 
+  MapPin, 
   CheckCircle, 
-  XCircle,
-  MessageCircle,
-  Bell,
-  AlertCircle,
-  Loader2
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+  AlertTriangle,
+  MessageSquare,
+  Settings,
+  TrendingUp,
+  DollarSign,
+  Users,
+  Calendar,
+  Eye,
+  Filter,
+  RefreshCw,
+  MoreHorizontal
+} from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
 
 interface ActivityFeedProps {
   className?: string;
@@ -28,7 +32,7 @@ interface ActivityFeedProps {
 
 interface ActivityItem {
   id: string;
-  type: 'attendance' | 'quotation' | 'approval' | 'system' | 'message';
+  type: 'attendance' | 'quotation' | 'approval' | 'system' | 'message' | 'user_action';
   user: {
     id: number;
     name: string;
@@ -44,305 +48,239 @@ interface ActivityItem {
   metadata?: any;
   timestamp: Date;
   priority: 'low' | 'medium' | 'high';
+  status?: 'success' | 'pending' | 'failed';
 }
 
 export default function ActivityFeed({ 
   className, 
   showHeader = true, 
-  maxItems = 10, 
+  maxItems = 10,
   compact = false 
 }: ActivityFeedProps) {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const { data: activities, isLoading, refetch } = useQuery({
-    queryKey: ['/api/activities'],
-    refetchInterval: 30000, // Keep 30-second refresh
-    onSuccess: () => setIsRefreshing(false),
+  const { data: activities = [], isLoading, refetch } = useQuery({
+    queryKey: ["/api/activities"],
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
   });
 
-  // Generate mock activity data for demonstration
-  const mockActivities: ActivityItem[] = [
-    {
-      id: '1',
-      type: 'attendance',
-      user: { id: 3, name: 'Sarah Johnson', role: 'field_rep' },
-      action: 'clocked in',
-      target: { type: 'hospital', name: "St. Mary's Hospital", id: '1' },
-      metadata: { location: 'Within geo-fence', gpsAccuracy: '±5m' },
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
-      priority: 'low'
-    },
-    {
-      id: '2',
-      type: 'quotation',
-      user: { id: 4, name: 'Mike Chen', role: 'field_rep' },
-      action: 'submitted quotation',
-      target: { type: 'quotation', name: 'QUO-2024-001', id: 'quo1' },
-      metadata: { amount: '$45,000', hospital: 'General Medical Center' },
-      timestamp: new Date(Date.now() - 15 * 60 * 1000),
-      priority: 'medium'
-    },
-    {
-      id: '3',
-      type: 'approval',
-      user: { id: 1, name: 'System Administrator', role: 'admin' },
-      action: 'approved quotation',
-      target: { type: 'quotation', name: 'QUO-2024-001', id: 'quo1' },
-      metadata: { decision: 'approved', notes: 'Competitive pricing, good fit for hospital needs' },
-      timestamp: new Date(Date.now() - 30 * 60 * 1000),
-      priority: 'high'
-    },
-    {
-      id: '4',
-      type: 'attendance',
-      user: { id: 5, name: 'Anna Martinez', role: 'field_rep' },
-      action: 'requested manual approval',
-      target: { type: 'hospital', name: 'University Medical Center', id: '3' },
-      metadata: { reason: 'Parking restrictions - 150m from designated area', status: 'pending' },
-      timestamp: new Date(Date.now() - 45 * 60 * 1000),
-      priority: 'high'
-    },
-    {
-      id: '5',
-      type: 'system',
-      user: { id: 0, name: 'System', role: 'system' },
-      action: 'generated backup',
-      target: { type: 'system', name: 'Database Backup', id: 'backup1' },
-      metadata: { size: '2.4 GB', duration: '3m 42s' },
-      timestamp: new Date(Date.now() - 60 * 60 * 1000),
-      priority: 'low'
-    },
-    {
-      id: '6',
-      type: 'quotation',
-      user: { id: 3, name: 'Sarah Johnson', role: 'field_rep' },
-      action: 'sent quotation via email',
-      target: { type: 'quotation', name: 'QUO-2024-002', id: 'quo2' },
-      metadata: { recipient: 'contact@citygeneral.com', method: 'email' },
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      priority: 'medium'
+  const getActionDescription = (activity: ActivityItem) => {
+    switch (activity.type) {
+      case 'attendance':
+        return `${activity.action} at ${activity.target?.name || 'location'}`;
+      case 'quotation':
+        return `${activity.action} quotation for ${activity.target?.name || 'client'}`;
+      case 'approval':
+        return `${activity.action} requires approval`;
+      case 'system':
+        return activity.action;
+      case 'message':
+        return `sent message: "${activity.metadata?.content?.substring(0, 50)}..."`;
+      case 'user_action':
+        return `${activity.action}`;
+      default:
+        return activity.action;
     }
-  ];
+  };
 
-  const activityData = activities || mockActivities;
-  const displayedActivities = activityData.slice(0, maxItems);
-
-  const getActivityIcon = (type: string, action: string) => {
-    const iconClass = "h-4 w-4";
+  const getIcon = (type: string, status?: string) => {
+    const iconClass = compact ? "h-3 w-3" : "h-4 w-4";
+    
     switch (type) {
       case 'attendance':
-        return action.includes('clocked') ? 
-          <Clock className={`${iconClass} text-blue-600`} /> :
-          <MapPin className={`${iconClass} text-amber-600`} />;
+        return <Clock className={`${iconClass} ${status === 'success' ? 'text-green-600' : 'text-blue-600'}`} />;
       case 'quotation':
-        return <FileText className={`${iconClass} text-green-600`} />;
+        return <FileText className={`${iconClass} ${status === 'pending' ? 'text-yellow-600' : 'text-purple-600'}`} />;
       case 'approval':
-        return action.includes('approved') ?
-          <CheckCircle className={`${iconClass} text-green-600`} /> :
-          <XCircle className={`${iconClass} text-red-600`} />;
-      case 'message':
-        return <MessageCircle className={`${iconClass} text-blue-600`} />;
+        return <CheckCircle className={`${iconClass} text-green-600`} />;
       case 'system':
-        return <Activity className={`${iconClass} text-gray-600`} />;
+        return <Settings className={`${iconClass} text-gray-600`} />;
+      case 'message':
+        return <MessageSquare className={`${iconClass} text-blue-600`} />;
+      case 'user_action':
+        return <Users className={`${iconClass} text-indigo-600`} />;
       default:
-        return <Bell className={`${iconClass} text-gray-600`} />;
+        return <User className={`${iconClass} text-gray-600`} />;
+    }
+  };
+
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'success':
+        return 'bg-green-100 border-green-200';
+      case 'pending':
+        return 'bg-yellow-100 border-yellow-200';
+      case 'failed':
+        return 'bg-red-100 border-red-200';
+      default:
+        return 'bg-blue-100 border-blue-200';
     }
   };
 
   const getPriorityIndicator = (priority: string) => {
+    const baseClass = "w-1 h-full rounded-full";
     switch (priority) {
-      case 'high': 
-        return <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0" />;
-      case 'medium': 
-        return <div className="w-2 h-2 bg-amber-500 rounded-full flex-shrink-0" />;
-      case 'low': 
-        return <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />;
-      default: 
-        return <div className="w-2 h-2 bg-gray-400 rounded-full flex-shrink-0" />;
+      case 'high':
+        return `${baseClass} bg-red-500`;
+      case 'medium':
+        return `${baseClass} bg-yellow-500`;
+      case 'low':
+        return `${baseClass} bg-green-500`;
+      default:
+        return `${baseClass} bg-gray-300`;
     }
   };
 
-  const getUserInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
+  const limitedActivities = activities.slice(0, maxItems);
 
-  const formatUserRole = (role: string) => {
-    return role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
-
-  const getActionText = (activity: ActivityItem) => {
-    const { action, target, metadata, type } = activity;
-    
-    let actionText = action;
-    if (target) {
-      actionText += ` ${target.name}`;
-    }
-    
-    // Add contextual information based on activity type
-    if (type === 'quotation' && metadata?.amount) {
-      actionText += ` (${metadata.amount})`;
-    }
-    
-    return actionText;
-  };
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await refetch();
-  };
-
-  // Auto-refresh indicator
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsRefreshing(true);
-      setTimeout(() => setIsRefreshing(false), 500);
-    }, 30000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  if (isLoading) {
+  if (isLoading && activities.length === 0) {
     return (
-      <Card className={className}>
-        {showHeader && (
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <Activity className="h-5 w-5 mr-2 text-blue-600" />
-              Activity Feed
-            </CardTitle>
-          </CardHeader>
-        )}
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="animate-pulse">
+            <div className="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg">
+              <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-3 bg-gray-300 rounded w-3/4"></div>
+                <div className="h-2 bg-gray-300 rounded w-1/2"></div>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
     );
   }
 
   return (
-    <Card className={className}>
+    <div className={className}>
       {showHeader && (
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <Activity className="h-5 w-5 mr-2 text-blue-600" />
-              Activity Feed
-            </CardTitle>
-            {isRefreshing && (
-              <div className="flex items-center text-xs text-blue-600">
-                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                <span className="hidden sm:inline">Updating...</span>
-              </div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <TrendingUp className="h-5 w-5 text-blue-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Live Activity</h3>
+            {activities.length > 0 && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                {activities.length} updates
+              </Badge>
             )}
           </div>
-        </CardHeader>
-      )}
-      
-      <CardContent className={compact ? "p-3" : "p-4"}>
-        {displayedActivities.length === 0 ? (
-          <div className="text-center py-12">
-            <Activity className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-500 text-sm">No recent activity</p>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isLoading}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </Button>
+            <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
+              <Filter className="h-4 w-4" />
+            </Button>
           </div>
-        ) : (
-          <div className={`space-y-${compact ? '2' : '3'}`}>
-            {displayedActivities.map((activity, index) => (
-              <div
-                key={activity.id}
-                className={`group relative flex items-start space-x-3 p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all duration-200 ${
-                  compact ? 'p-2' : 'p-3'
-                } ${
-                  index === 0 ? 'ring-1 ring-blue-100 bg-blue-50/30' : ''
-                }`}
-              >
-                {/* Priority Indicator */}
-                <div className="absolute left-0 top-3 h-8 flex items-center">
-                  {getPriorityIndicator(activity.priority)}
-                </div>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {limitedActivities.map((activity: ActivityItem) => (
+          <Card 
+            key={activity.id} 
+            className={`transition-all duration-200 hover:shadow-md border-l-4 ${getStatusColor(activity.status)} ${
+              compact ? 'p-2' : 'p-3'
+            }`}
+          >
+            <CardContent className="p-0">
+              <div className="flex items-start space-x-3">
+                <div className={getPriorityIndicator(activity.priority)}></div>
                 
-                {/* User Avatar */}
-                <div className="ml-3 flex-shrink-0">
-                  <Avatar className={compact ? "h-8 w-8" : "h-10 w-10"}>
-                    <AvatarImage src={activity.user.avatar} alt={activity.user.name} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-semibold">
-                      {getUserInitials(activity.user.name)}
-                    </AvatarFallback>
-                  </Avatar>
+                <div className={`p-2 rounded-lg ${getStatusColor(activity.status)}`}>
+                  {getIcon(activity.type, activity.status)}
                 </div>
-                
-                {/* Activity Content */}
+
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center space-x-2 min-w-0">
-                      <span className={`font-medium text-gray-900 truncate ${compact ? 'text-sm' : 'text-base'}`}>
-                        {activity.user.name}
-                      </span>
-                      <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600">
-                        {formatUserRole(activity.user.role)}
-                      </Badge>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                            {activity.user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className={`font-medium text-gray-900 ${compact ? 'text-xs' : 'text-sm'}`}>
+                          {activity.user.name}
+                        </span>
+                        <Badge 
+                          variant="outline" 
+                          className={`${compact ? 'text-xs px-1 py-0' : 'text-xs'} capitalize`}
+                        >
+                          {activity.user.role.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                      
+                      <p className={`text-gray-600 ${compact ? 'text-xs' : 'text-sm'} line-clamp-2`}>
+                        {getActionDescription(activity)}
+                      </p>
+
+                      {activity.metadata && !compact && (
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-500">
+                          {activity.metadata.location && (
+                            <span className="flex items-center bg-gray-100 px-2 py-1 rounded-full">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {activity.metadata.location}
+                            </span>
+                          )}
+                          {activity.metadata.amount && (
+                            <span className="flex items-center bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                              <DollarSign className="h-3 w-3 mr-1" />
+                              {activity.metadata.amount}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center space-x-2 flex-shrink-0">
-                      {getActivityIcon(activity.type, activity.action)}
+
+                    <div className="flex flex-col items-end space-y-1">
                       <span className={`text-gray-500 ${compact ? 'text-xs' : 'text-sm'}`}>
                         {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
                       </span>
+                      {!compact && (
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <MoreHorizontal className="h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  
-                  <p className={`text-gray-700 mb-2 ${compact ? 'text-sm' : 'text-base'}`}>
-                    {getActionText(activity)}
-                  </p>
-                  
-                  {/* Metadata */}
-                  {activity.metadata && (
-                    <div className="space-y-2">
-                      {activity.metadata.reason && (
-                        <div className="flex items-start space-x-2 p-2 bg-amber-50 rounded-md border border-amber-200">
-                          <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs font-medium text-amber-800">Requires Attention</p>
-                            <p className="text-xs text-amber-700">{activity.metadata.reason}</p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {activity.metadata.notes && (
-                        <div className="p-2 bg-blue-50 rounded-md border border-blue-200">
-                          <p className="text-xs text-blue-800">{activity.metadata.notes}</p>
-                        </div>
-                      )}
-                      
-                      {/* Status badges and additional info */}
-                      <div className="flex flex-wrap gap-1">
-                        {activity.metadata.status && (
-                          <Badge 
-                            variant={activity.metadata.status === 'pending' ? 'outline' : 'default'}
-                            className="text-xs"
-                          >
-                            {activity.metadata.status}
-                          </Badge>
-                        )}
-                        {activity.metadata.location && (
-                          <Badge variant="outline" className="text-xs text-green-700 border-green-300">
-                            {activity.metadata.location}
-                          </Badge>
-                        )}
-                        {activity.metadata.hospital && activity.type === 'quotation' && (
-                          <Badge variant="outline" className="text-xs text-blue-700 border-blue-300">
-                            {activity.metadata.hospital}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
-            ))}
+            </CardContent>
+          </Card>
+        ))}
+        
+        {limitedActivities.length === 0 && !isLoading && (
+          <Card className="p-8 text-center">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="p-4 bg-gray-100 rounded-full">
+                <TrendingUp className="h-8 w-8 text-gray-400" />
+              </div>
+              <div>
+                <h4 className="text-lg font-medium text-gray-900 mb-1">No recent activity</h4>
+                <p className="text-sm text-gray-500">Activity will appear here as your team works</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => refetch()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {activities.length > maxItems && (
+          <div className="text-center pt-3">
+            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
+              <Eye className="h-4 w-4 mr-2" />
+              View all {activities.length} activities
+            </Button>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
