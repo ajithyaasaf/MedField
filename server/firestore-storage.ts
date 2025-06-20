@@ -27,11 +27,25 @@ export class FirestoreStorage implements IStorage {
       // Try to access the database first to ensure it exists
       await this.db.listCollections();
       
-      // Check if we already have data
-      const usersSnapshot = await this.db.collection('users').limit(1).get();
-      if (!usersSnapshot.empty) {
-        console.log('Sample data already exists in Firestore');
-        return; // Data already exists
+      // Force recreate data to ensure sarah.johnson user exists
+      console.log('Force clearing and recreating Firestore data...');
+      
+      // Clear existing data
+      const collections = ['users', 'hospitals', 'products', 'geo_fences', 'attendance', 'quotations', 'schedules'];
+      for (const collectionName of collections) {
+        try {
+          const snapshot = await this.db.collection(collectionName).get();
+          const batch = this.db.batch();
+          snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+          });
+          if (snapshot.docs.length > 0) {
+            await batch.commit();
+            console.log(`Cleared ${snapshot.docs.length} documents from ${collectionName}`);
+          }
+        } catch (error) {
+          console.log(`Collection ${collectionName} cleared or didn't exist`);
+        }
       }
 
       console.log('Initializing sample data in Firestore...');
