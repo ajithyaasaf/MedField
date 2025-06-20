@@ -252,35 +252,42 @@ export default function FieldRepDashboard() {
   const conversionRate = thisMonthQuotations.length > 0 ? Math.round((acceptedQuotations.length / thisMonthQuotations.length) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-medical-gray-light">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Enhanced Header */}
+      <header className="bg-white/90 backdrop-blur-md shadow-lg border-b border-slate-200/60 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <HeartPulse className="h-6 w-6 text-medical-blue" />
-              <h1 className="text-xl font-bold text-medical-gray-dark">MedField Pro</h1>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md">
+                <HeartPulse className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  MedField Pro
+                </h1>
+                <p className="text-xs text-slate-500">Field Representative Portal</p>
+              </div>
             </div>
             
             <div className="flex items-center space-x-4">
               <LanguageSelector />
               
-              {/* Connection Status */}
+              {/* Enhanced Connection Status */}
               <div className="flex items-center">
                 {isOnline ? (
-                  <div className="flex items-center text-green-600">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-xs">Online</span>
+                  <div className="flex items-center px-3 py-1 bg-green-50 border border-green-200 rounded-full">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                    <span className="text-xs font-medium text-green-700">Online</span>
                   </div>
                 ) : (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowOfflineManager(true)}
-                    className="text-orange-600"
+                    className="px-3 py-1 bg-orange-50 border border-orange-200 rounded-full hover:bg-orange-100"
                   >
-                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-                    <span className="text-xs">Offline</span>
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-2 animate-pulse"></div>
+                    <span className="text-xs font-medium text-orange-700">Offline</span>
                   </Button>
                 )}
               </div>
@@ -290,11 +297,12 @@ export default function FieldRepDashboard() {
                   variant="ghost" 
                   size="sm"
                   onClick={() => setShowNotifications(!showNotifications)}
+                  className="hover:bg-blue-50 transition-colors relative"
                 >
                   <Bell className="h-4 w-4" />
-                  {notifications.filter(n => !n.read).length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-medical-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {notifications.filter(n => !n.read).length}
+                  {notifications.filter((n: any) => !n.read).length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center shadow-md animate-pulse">
+                      {notifications.filter((n: any) => !n.read).length}
                     </span>
                   )}
                 </Button>
@@ -360,22 +368,29 @@ export default function FieldRepDashboard() {
             </div>
           </div>
         )}
-        {/* Status Header */}
-        <div className="bg-gradient-to-r from-medical-blue to-medical-blue-dark text-white p-6 md:rounded-t-lg">
+        {/* Enhanced Status Header */}
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white p-6 md:rounded-t-xl shadow-lg">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Welcome back, {user?.user?.name?.split(' ')[0]}!</h2>
-              <p className="text-blue-100 text-sm">
-                Field Representative • Territory: {user?.user?.territory}
-              </p>
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <User className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">Welcome back, {user?.user?.name?.split(' ')[0] || 'User'}!</h2>
+                <p className="text-blue-100 text-sm flex items-center space-x-2">
+                  <span>Field Representative</span>
+                  <span>•</span>
+                  <span>Territory: {user?.user?.territory || 'Not assigned'}</span>
+                </p>
+              </div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-blue-100">Status</div>
-              <div className="flex items-center space-x-2">
+              <div className="text-sm text-blue-100 mb-1">Current Status</div>
+              <div className="flex items-center space-x-3 bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm">
                 <div className={`w-3 h-3 rounded-full ${
-                  todayAttendance ? 'bg-medical-green animate-pulse' : 'bg-gray-400'
+                  todayAttendance ? 'bg-green-400 animate-pulse shadow-lg shadow-green-400/50' : 'bg-gray-400'
                 }`}></div>
-                <span className="font-medium">
+                <span className="font-semibold">
                   {todayAttendance ? 'Clocked In' : 'Clocked Out'}
                 </span>
               </div>
@@ -394,20 +409,34 @@ export default function FieldRepDashboard() {
           </div>
         )}
 
-        {/* Performance Dashboard */}
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-medical-gray-dark mb-4">This Month's Performance</h3>
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <Card className="p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-medical-blue">{thisMonthQuotations.length}</div>
-                <div className="text-sm text-medical-gray">Quotations</div>
+        {/* Enhanced Performance Dashboard */}
+        <div className="p-6 bg-white/50 backdrop-blur-sm border-b border-slate-200">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-slate-800 flex items-center">
+              <TrendingUp className="h-5 w-5 mr-2 text-blue-600" />
+              This Month's Performance
+            </h3>
+            <div className="text-sm text-slate-500">
+              {format(new Date(), 'MMMM yyyy')}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <Card className="bg-white/80 backdrop-blur-sm border border-blue-200/60 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <FileText className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="text-3xl font-bold text-blue-600 mb-1">{(thisMonthQuotations || []).length}</div>
+                <div className="text-sm font-medium text-slate-600">Quotations Created</div>
               </div>
             </Card>
-            <Card className="p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-medical-green">{conversionRate}%</div>
-                <div className="text-sm text-medical-gray">Conversion</div>
+            <Card className="bg-white/80 backdrop-blur-sm border border-green-200/60 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Target className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="text-3xl font-bold text-green-600 mb-1">{conversionRate}%</div>
+                <div className="text-sm font-medium text-slate-600">Conversion Rate</div>
               </div>
             </Card>
             <Card className="p-4">

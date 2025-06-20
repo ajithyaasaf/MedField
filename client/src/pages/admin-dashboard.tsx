@@ -121,82 +121,110 @@ export default function AdminDashboard() {
   const isAdmin = user?.user?.role === 'admin';
   if (!isAdmin) return null;
 
-  // Calculate KPIs
-  const activeReps = users?.filter((u: any) => u.role === 'field_rep' && u.isActive) || [];
-  const pendingQuotes = quotations?.filter((q: any) => q.status === 'sent') || [];
-  const todayAttendance = attendance?.filter((a: any) => 
+  // Safe data handling with proper array checks
+  const safeUsers = Array.isArray(users) ? users : [];
+  const safeQuotations = Array.isArray(quotations) ? quotations : [];
+  const safeAttendance = Array.isArray(attendance) ? attendance : [];
+  const safeHospitals = Array.isArray(hospitals) ? hospitals : [];
+  const safeGeoFences = Array.isArray(geoFences) ? geoFences : [];
+
+  // Calculate KPIs with safe data
+  const activeReps = safeUsers.filter((u: any) => u.role === 'field_rep' && u.isActive);
+  const pendingQuotes = safeQuotations.filter((q: any) => q.status === 'sent');
+  const todayAttendance = safeAttendance.filter((a: any) => 
     a.date === new Date().toISOString().split('T')[0]
-  ) || [];
+  );
   
-  const monthlyRevenue = quotations?.reduce((sum: number, q: any) => {
+  const monthlyRevenue = safeQuotations.reduce((sum: number, q: any) => {
     if (q.status === 'accepted' && new Date(q.createdAt).getMonth() === new Date().getMonth()) {
-      return sum + parseFloat(q.totalAmount);
+      return sum + parseFloat(q.totalAmount || '0');
     }
     return sum;
-  }, 0) || 0;
+  }, 0);
 
-  const conversionRate = quotations?.length > 0 
-    ? Math.round((quotations.filter((q: any) => q.status === 'accepted').length / quotations.length) * 100)
+  const conversionRate = safeQuotations.length > 0 
+    ? Math.round((safeQuotations.filter((q: any) => q.status === 'accepted').length / safeQuotations.length) * 100)
     : 0;
 
-  // Recent activity
+  // Recent activity with safe data handling
   const recentActivity = [
     ...todayAttendance.slice(0, 3).map((a: any) => ({
       type: 'clock-in',
-      user: users?.find((u: any) => u.id === a.userId)?.name,
+      user: safeUsers.find((u: any) => u.id === a.userId)?.name,
       time: a.clockInTime,
-      hospital: hospitals?.find((h: any) => h.id === a.hospitalId)?.name
+      hospital: safeHospitals.find((h: any) => h.id === a.hospitalId)?.name
     })),
-    ...quotations?.slice(0, 2).map((q: any) => ({
+    ...safeQuotations.slice(0, 2).map((q: any) => ({
       type: 'quotation',
-      user: users?.find((u: any) => u.id === q.userId)?.name,
+      user: safeUsers.find((u: any) => u.id === q.userId)?.name,
       time: q.createdAt,
       quotationNumber: q.quotationNumber
-    })) || []
+    }))
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-medical-gray-light">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Enhanced Header */}
+      <header className="bg-white/90 backdrop-blur-md shadow-lg border-b border-slate-200/60 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <HeartPulse className="h-6 w-6 text-medical-blue" />
-              <h1 className="text-xl font-bold text-medical-gray-dark">MedField Pro</h1>
-              <Badge variant="secondary" className="ml-2">Admin</Badge>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md">
+                <HeartPulse className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  MedField Pro
+                </h1>
+                <p className="text-xs text-slate-500">Administrative Dashboard</p>
+              </div>
+              <Badge variant="secondary" className="ml-2 bg-blue-50 text-blue-700 border-blue-200">
+                Admin Portal
+              </Badge>
             </div>
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <User className="h-4 w-4 text-medical-gray" />
-                <span className="text-sm font-medium text-medical-gray-dark">
-                  {user?.user?.name}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => logoutMutation.mutate()}
-                  disabled={logoutMutation.isPending}
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center space-x-3 px-3 py-1 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-700">{user?.user?.name}</p>
+                  <p className="text-xs text-slate-500 capitalize">{user?.user?.role}</p>
+                </div>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
+                className="hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
             </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Dashboard Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-medical-gray-dark">Admin Dashboard</h1>
-          <p className="text-medical-gray mt-2">Monitor field operations, manage quotations, and track performance</p>
+        {/* Enhanced Dashboard Header */}
+        <div className="mb-8 bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-slate-200/60">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
+              <p className="text-slate-600">Monitor field operations, manage quotations, and track performance</p>
+            </div>
+            <div className="text-sm text-slate-500">
+              {format(new Date(), 'EEEE, MMMM d, yyyy')}
+            </div>
+          </div>
         </div>
 
-        {/* KPI Cards */}
+        {/* Enhanced KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="bg-white/80 backdrop-blur-sm border border-blue-200/60 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
